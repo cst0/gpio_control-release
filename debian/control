@@ -1,0 +1,12 @@
+Source: ros-melodic-gpio-control
+Section: misc
+Priority: optional
+Maintainer: cst <christopher.thierauf@tufts.edu>
+Build-Depends: debhelper (>= 9.0.0), ros-melodic-catkin, ros-melodic-message-generation, ros-melodic-rospy, ros-melodic-std-msgs
+Homepage: https://github.com/cst0/gpio_control
+Standards-Version: 3.9.2
+
+Package: ros-melodic-gpio-control
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-melodic-message-runtime, ros-melodic-rospy, ros-melodic-std-msgs
+Description: Control GPIO pins on Raspberry Pi, Nvidia Jetson, and other Linux devices with GPIO pins
