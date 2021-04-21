@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+
+"""
+Control GPIO pins via ROS. Made to be as generic as possible, allowing the same node to be
+used in multiple configurations/devices.
+
+@author cst <chris thierauf, christopher.thierauf@tufts.edu>
+@version 0.0.1
+@license Apache 2.0
+@copyright Christopher Thierauf 2020.
+This copyright is used to release the code in accordance with the license of this repository.
+"""
+import sys
+import rospy
+import argparse
+
+# If your IDE is complaining about this line, make sure you've set
+# <catkin_ws>/install/lib/dist-packages as a source
+from gpio_control.gpio_control_utils import GpioControl, VALID_DEVICES
+
+
+def setup_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', nargs='+',
+                        help='List pins on which to take inputs, allowing this node to publish '
+                             'the current state of the pin. Either --input or --output must be '
+                             'used.')
+    parser.add_argument('-o', '--output', nargs='+',
+                        help="List pins on which to produce outputs, allowing this node to set up a"
+                             "subscriber to take inputs for controlling the state of the pin. "
+                             "Either --input or --output must be used.")
+
+    parser.add_argument('--device', type=str,
+                        help='hardware device to use. Valid devices: ' + str(VALID_DEVICES) +
+                             '. file-system should support all Linux devices but should be used '
+                             'with caution as there are no safety checks, simulated will only '
+                             'print to the screen and is not useful in production.')
+
+    parser.add_argument('--rate', type=int, help='Rate at which to run this node. Default: 10.')
+    parser.add_argument('--constant-publish', action='store_true', help='Rather than only '
+                                                                        'publishing the state of '
+                                                                        'inputs on state change, '
+                                                                        'be constantly publishing '
+                                                                        'the state of all pins.')
+
+    return parser
+
+
+def check_valid_args(local_args):
+    if local_args.device is None:
+        rospy.logwarn("No device was specified, so we're assuming nothing and closing.")
+        sys.exit(1)
+    if not local_args.input and not local_args.output:
+        rospy.logerr("No inputs or outputs specified, so nothing to do here and closing. Provide "
+                     "pins to manipulate using --input or --output. See --help for more "
+                     "information.")
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+
+    args = setup_parser().parse_args(rospy.myargv()[1:])
+    check_valid_args(args)
+
+    rospy.init_node("gpio_pin_controller", anonymous=False)
+
+    # Set up a string to inform the user as to what this node will try to do
+    intro_string = "Hello! Setting up to control GPIO pins "
+    if args.input is not None:
+        intro_string += str(args.input) + " as inputs"
+        if args.output is not None:
+            # only bother saying 'and' if there's any pins to do that for
+            intro_string += ", and pins "
+    if args.output is not None:
+        intro_string += str(args.output) + " as outputs"
+    intro_string += "."
+    rospy.loginfo(intro_string)
+
+    gpio = GpioControl(args.device)
+    if args.input is not None:
+        for input_pin in args.input:
+            gpio.add_input_pin(input_pin)
+    else:
+        args.input = []  # be an empty list, not None
+
+    if args.output is not None:
+        for output_pin in args.output:
+            gpio.add_output_pin(output_pin)
+    else:
+        args.output = []  # be an empty list, not None
+
+    rospy.loginfo("All set up! Ready to accept commands for outputs and provide updates on inputs.")
+    gpio.spin(args.rate)
+
+    rospy.loginfo("Manager for GPIO pins " +
+                  str(args.input + args.output) +
+                  " stopping. Goodbye!")
