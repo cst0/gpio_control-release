@@ -1,0 +1,12 @@
+Source: ros-kinetic-gpio-control
+Section: misc
+Priority: optional
+Maintainer: cst <christopher.thierauf@tufts.edu>
+Build-Depends: debhelper (>= 9.0.0), ros-kinetic-catkin, ros-kinetic-message-generation, ros-kinetic-rospy, ros-kinetic-std-msgs
+Homepage: https://github.com/cst0/gpio_control
+Standards-Version: 3.9.2
+
+Package: ros-kinetic-gpio-control
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-kinetic-message-runtime, ros-kinetic-rospy, ros-kinetic-std-msgs
+Description: Control GPIO pins on Raspberry Pi, Nvidia Jetson, and other Linux devices with GPIO pins
